@@ -22,4 +22,4 @@ def create_webdriver():
     return webdriver.Chrome(options=driver_option)
 
 browser = create_webdriver()
-browser.get(getMainURL)
+browser.get(getMainURL())
