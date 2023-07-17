@@ -1,3 +1,4 @@
 ChromeDriver/
 .venv/
 robots.txt
+__pycache__
