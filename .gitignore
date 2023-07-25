@@ -1,4 +1,4 @@
-ChromeDriver/
 .venv/
 robots.txt
 __pycache__
+ChromeDriver/LICENSE.chromedriver

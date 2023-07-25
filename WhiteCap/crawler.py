@@ -7,10 +7,7 @@ from selenium.common.exceptions import NoSuchElementException
 import time
 import pandas as pd
 
-driver_option = webdriver.ChromeOptions()
-driver_option.add_argument("--incognito")
-driver_option.add_experimental_option('excludeSwitches', ['enable-logging'])
-driver_option.add_experimental_option("detach", True)
+CHROMEDRIVER_PATH = "ChromeDriver\chromedriver.exe"
 
 def getMainURL():
     url = 'https://www.whitecap.com/'
@@ -21,7 +18,13 @@ def getSiteName() -> str:
     return name
 
 def create_webdriver() -> webdriver:
-    return webdriver.Chrome(options=driver_option)
+
+    driver_option = webdriver.ChromeOptions()
+    driver_option.add_argument("--incognito")
+    driver_option.add_argument("--log-level=3")
+    # driver_option.add_experimental_option("detach", True)
+
+    return webdriver.Chrome(options=driver_option, executable_path=CHROMEDRIVER_PATH)
 
 def getCategoryLinks() -> list:
     links = []
@@ -35,6 +38,8 @@ def startCrawling():
     driver = openBrowser()
     data = crawler(driver)
     product_df = pd.DataFrame.from_dict(data, orient='index')
+    product_df = product_df.reset_index()
+    product_df.columns = ['Product_ID', 'Price']
     print(product_df)
     closeBrowser(driver)
 
@@ -62,6 +67,8 @@ def crawler(driver: webdriver) -> dict:
         print("Crawling: " + link)
         try:
             driver.get(link)
+            #let page load
+            time.sleep(5)
         except:
             driver.refresh()
         # Gets all products that are currently loaded
@@ -75,3 +82,12 @@ def crawler(driver: webdriver) -> dict:
             prod_price = prod.find_element(by=By.CLASS_NAME, value='product__price-wrapper').text
             product_list[prod_name] = prod_price
     return product_list
+
+
+# TODO: configure Better Comments Extension. probably watch tutorial
+'''
+TODO: Write code that gets current category name and saves current dataframe in a csv (make function and make
+crawler call this function)
+TODO: Make page loader that loads the page completely first then get all products. 
+TODO: add checker in driver creation for site being down
+'''
