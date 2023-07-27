@@ -46,7 +46,7 @@ def startCrawling():
     print("\n")
     # print(product_df)
     closeBrowser(driver)
-    product_df.to_csv('WhiteCap/unformatted_products.csv')
+    product_df.to_csv('WhiteCap/unformatted_products.csv', index=False)
     print("\nSuccess!")
 
 def openBrowser() -> webdriver:
@@ -106,9 +106,3 @@ def crawler(driver: webdriver) -> dict:
                 pass
             product_list[prod_name] = prod_price
     return product_list
-
-
-
-
-# TODO: add checker in driver creation for site being down
-
