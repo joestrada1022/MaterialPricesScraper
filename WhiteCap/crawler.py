@@ -31,9 +31,9 @@ def getCategoryLinks() -> list:
     links = []
 
     # Framing Straps and Hangers
-    # links.append('https://www.whitecap.com/c/joist-hangers-and-straps-312950')
-    links.append('https://www.whitecap.com/search/?query=lus') # *smaller page for testing
-    links.append('https://www.whitecap.com/search/?query=hus') # *smaller page for testing
+    links.append('https://www.whitecap.com/c/joist-hangers-and-straps-312950')
+    # links.append('https://www.whitecap.com/search/?query=lus') # *smaller page for testing
+    # links.append('https://www.whitecap.com/search/?query=hus') # *smaller page for testing
 
     return links
 
@@ -46,7 +46,7 @@ def startCrawling():
     print("\n")
     # print(product_df)
     closeBrowser(driver)
-    product_df.to_csv('WhiteCap/unformatted_products.csv', index=False)
+    product_df.to_csv('WhiteCap/products.csv', index=False)
     print("\nSuccess!")
 
 def openBrowser() -> webdriver:
@@ -66,6 +66,7 @@ def closeBrowser(driver: webdriver):
     time.sleep(3)
     return
 
+#TODO: add section to dataframe for type (hardware, lumber, etc) and market name section
 def crawler(driver: webdriver) -> dict:
     product_list = {}
     print("Crawling: " + getSiteName() + "\n")
@@ -77,17 +78,22 @@ def crawler(driver: webdriver) -> dict:
             driver.get(link)
             #let page load
             time.sleep(5)
+            driver.maximize_window()
         except:
             driver.refresh()
         hasMore = True
         while hasMore:
             try:
-                button = WebDriverWait(driver,10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, button_xpath)))
+                WebDriverWait(driver,10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, button_xpath)))
+                button = driver.find_element(by=By.CSS_SELECTOR, value=button_xpath)
                 # scroll button into view
                 driver.execute_script("arguments[0].scrollIntoView();", button)
-                time.sleep(2.5)
+                time.sleep(1.25)
                 button.click()
-                time.sleep(7.5)
+                loading = driver.find_element(by=By.XPATH, value='//*[@id="product_listing"]/div')
+                while(loading.get_attribute('class') == 'spinner spinner--big active'): 
+                    time.sleep(1)
+                print("More loaded successfully")
             except NoSuchElementException:
                 hasMore = False
             except TimeoutException:
@@ -103,6 +109,6 @@ def crawler(driver: webdriver) -> dict:
             try:
                 prod_price = prod.find_element(by=By.CLASS_NAME, value='product__price-wrapper').text
             except NoSuchElementException:
-                pass
+                continue
             product_list[prod_name] = prod_price
     return product_list
