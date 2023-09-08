@@ -31,8 +31,8 @@ def getCategoryLinks() -> list:
     links = []
 
     # Framing Straps and Hangers
-    links.append('https://www.whitecap.com/c/joist-hangers-and-straps-312950')
-    # links.append('https://www.whitecap.com/search/?query=lus') # *smaller page for testing
+    # links.append('https://www.whitecap.com/c/joist-hangers-and-straps-312950')
+    links.append('https://www.whitecap.com/search/?query=lus') # *smaller page for testing
     # links.append('https://www.whitecap.com/search/?query=hus') # *smaller page for testing
 
     return links
@@ -40,9 +40,8 @@ def getCategoryLinks() -> list:
 def startCrawling():
     driver = openBrowser()
     data = crawler(driver)
-    product_df = pd.DataFrame.from_dict(data, orient='index')
-    product_df = product_df.reset_index()
-    product_df.columns = ['Product_ID', 'Price']
+    product_df = pd.DataFrame(data, columns=['Store', 'Category', 'Name', 'Price'])
+    # product_df = product_df.reset_index()
     print("\n")
     # print(product_df)
     closeBrowser(driver)
@@ -66,9 +65,9 @@ def closeBrowser(driver: webdriver):
     time.sleep(3)
     return
 
-#TODO: add section to dataframe for type (hardware, lumber, etc) and market name section
+
 def crawler(driver: webdriver) -> dict:
-    product_list = {}
+    product_list = []
     print("Crawling: " + getSiteName() + "\n")
     links = getCategoryLinks()
     button_xpath = '#product_listing > section > div > div > div:nth-child(3) > div > div > button'
@@ -110,5 +109,5 @@ def crawler(driver: webdriver) -> dict:
                 prod_price = prod.find_element(by=By.CLASS_NAME, value='product__price-wrapper').text
             except NoSuchElementException:
                 continue
-            product_list[prod_name] = prod_price
+            product_list.append(['WhiteCap', 'Hardware', prod_name, prod_price])
     return product_list
