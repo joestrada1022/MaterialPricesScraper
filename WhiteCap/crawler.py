@@ -6,6 +6,7 @@ from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import NoSuchElementException
 import time
 import pandas as pd
+import re
 
 CHROMEDRIVER_PATH = "ChromeDriver\chromedriver.exe"
 
@@ -31,9 +32,7 @@ def getCategoryLinks() -> list:
     links = []
 
     # Framing Straps and Hangers
-    # links.append('https://www.whitecap.com/c/joist-hangers-and-straps-312950')
-    links.append('https://www.whitecap.com/search/?query=lus') # *smaller page for testing
-    # links.append('https://www.whitecap.com/search/?query=hus') # *smaller page for testing
+    links.append('https://www.whitecap.com/c/joist-hangers-and-straps-312950')
 
     return links
 
@@ -92,7 +91,6 @@ def crawler(driver: webdriver) -> dict:
                 loading = driver.find_element(by=By.XPATH, value='//*[@id="product_listing"]/div')
                 while(loading.get_attribute('class') == 'spinner spinner--big active'): 
                     time.sleep(1)
-                print("More loaded successfully")
             except NoSuchElementException:
                 hasMore = False
             except TimeoutException:
@@ -102,6 +100,13 @@ def crawler(driver: webdriver) -> dict:
         products = driver.find_element(by=By.CLASS_NAME, value='product-list')
         products = products.find_elements(by=By.CLASS_NAME, value='product__wrapper')
 
+        # Gets Category of all items on current page
+        category = driver.find_element(by=By.XPATH, value='//*[@id="product_listing"]/ol/li[4]').text
+        if 'Lumber' in category:
+            category = 'Lumber'
+        else:
+            category = 'Hardware'
+
         #Extracts info from every product
         for prod in products:
             prod_name = prod.find_element(by=By.CLASS_NAME, value='product__sku-id').text
@@ -109,5 +114,9 @@ def crawler(driver: webdriver) -> dict:
                 prod_price = prod.find_element(by=By.CLASS_NAME, value='product__price-wrapper').text
             except NoSuchElementException:
                 continue
-            product_list.append(['WhiteCap', 'Hardware', prod_name, prod_price])
+            # Formats Product ID
+            prod_name = re.sub(r"^\d{3}", "", prod_name)
+            # Formats Price
+            prod_price = re.sub(r"[$]", "", prod_price).strip()
+            product_list.append([getSiteName(), category, prod_name, prod_price])
     return product_list
